@@ -8,22 +8,32 @@ if (!isset($_SESSION['admin'])) {
 }
 
 include '../includes/db.php';// Insert data when form is submitted
+
+// Fetch all dropdown data
+$currency_sql = "SELECT id, Symbol FROM currencies ORDER BY id ASC";
+$currency_result = $conn->query($currency_sql);
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $Gemstone = $_POST['Gemstone'] ?? null;
-    $Length = $_POST['Length'] ?? null;
-    $Currency = $_POST['Currency'] ?? null;
-    $Price    = $_POST['Price'] ?? null;
+       $currency_id = $_POST['Currency'] ?? null; 
+    $type = $_POST['Type'] ?? null;
+    $length = $_POST['Length'] ?? null;
+  
+    $price_range    = $_POST['Price_Range'] ?? null;
 
-    $sql = "INSERT INTO pearl_prices (Gemstone, Length, Currency, Price) VALUES (?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssd", $Gemstone, $Length, $Currency, $Price);
+    if ($currency_id  && $length && $price_range) {
+        $sql = "INSERT INTO pearl_prices (currency_id, type, Length,  Price_Range, created_at) 
+                VALUES (?, ?, ?, ?,  NOW())";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("isss", $currency_id, $type, $length, $price_range);
 
-    if ($stmt->execute()) {
-        // ✅ Redirect to view page after successful insert
-        header("Location: view_pearl.php?success=1");
-        exit();
+        if ($stmt->execute()) {
+            header("Location: view_pearl.php?success=1");
+            exit();
+        } else {
+            echo "<p style='color:red; text-align:center;'>❌ Error: " . $stmt->error . "</p>";
+        }
     } else {
-        echo "<p style='color:red; text-align:center;'>❌ Error: " . $stmt->error . "</p>";
+        echo "<p style='color:red; text-align:center;'>❌ Invalid input. All fields are required and price must be > 0.</p>";
     }
 }
 
@@ -42,15 +52,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <div class="form-container">
     <h2>➕ Add Pearl Rate</h2>
     <form method="POST" action="">
-      
+
+     <!-- Currency Dropdown -->
       <div class="form-group">
-        <label>Gemstone</label>
-        <select name="Gemstone" required>
-          <option value="">-- Select Gemstone --</option>
+        <label>Currency</label>
+        <select name="Currency" required>
+          <option value="">-- Select Currency --</option>
+          <?php while ($row = $currency_result->fetch_assoc()) { ?>
+            <option value="<?= $row['id'] ?>"><?= htmlspecialchars($row['Symbol']) ?></option>
+          <?php } ?>
+        </select>
+      </div>
+      
+        <!-- Type -->
+       <div class="form-group">
+        <label>Type</label>
+        <select name="Type" required>
+          <option value="">-- Select Type --</option>
           <option value="Akoya Pearl">Akoya Pearl</option>
           <option value="Freshwater Pearl">Freshwater Pearl</option>
           <option value="South Sea Pearl">South Sea Pearl</option>
           <option value="Tahitian Pearl">Tahitian Pearl</option>
+        
         </select>
       </div>
 
@@ -63,19 +86,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </select>
       </div>
 
-      <div class="form-group">
-        <label>Currency</label>
-        <select name="Currency" required>
-          <option value="">-- Select Currency --</option>
-          <option value="QAR">QAR</option>
-          <option value="INR">INR</option>
-          <option value="USD">USD</option>
-        </select>
-      </div>
+    
 
       <div class="form-group">
         <label>Price</label>
-        <input type="number" step="0.01" name="Price" placeholder="Enter price..." required>
+        <input type="text"  name="Price_Range" placeholder="Enter price..." required>
       </div>
 
       <button type="submit">💰 Save Pearl Rate</button>

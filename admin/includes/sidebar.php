@@ -198,7 +198,7 @@ ul li { position: relative; }
       <!-- Currency -->
         <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>Currencies 
+<i data-lucide="circle-dollar-sign"></i>Currencies
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
@@ -209,7 +209,7 @@ ul li { position: relative; }
   <!-- Purity -->
         <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>Purities 
+      <i data-lucide="layers"></i>Purities 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
@@ -220,18 +220,40 @@ ul li { position: relative; }
   <!-- Weights -->
         <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>Weights 
+      <i data-lucide="scale"></i>Weights 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
       <li><a href="add_weight.php">Add Weight</a></li>
       <li><a href="view_weight.php">View Weight</a></li>
     </ul>
+  </li> 
+   <!-- Cities -->
+        <li class="dropdown">
+    <a href="javascript:void(0);" class="dropdown-toggle">
+      <i data-lucide="building-2"></i>Cities 
+      <span class="arrow">▼</span>
+    </a>
+    <ul class="dropdown-menu">
+      <li><a href="add_city.php">Add City</a></li>
+      <li><a href="view_city.php">View Cities</a></li>
+    </ul>
+  </li>   
+  
+   <!-- Users -->
+        <li class="dropdown">
+    <a href="javascript:void(0);" class="dropdown-toggle">
+      <i data-lucide="user"></i>Users 
+      <span class="arrow">▼</span>
+    </a>
+    <ul class="dropdown-menu">
+      <li><a href="view_user.php">View Users</a></li>
+    </ul>
   </li>      
         <!-- Gold -->
         <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>Gold Rates 
+      <i data-lucide="coins"></i>Gold Rates 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
@@ -243,7 +265,7 @@ ul li { position: relative; }
   <!-- Silver -->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>Silver Rates 
+      <i data-lucide="badge-dollar-sign"></i>Silver Rates 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
@@ -254,7 +276,7 @@ ul li { position: relative; }
   <!-- Diamond -->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>Diamond Rates 
+      <i data-lucide="gem"></i>Diamond Rates 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
@@ -265,7 +287,7 @@ ul li { position: relative; }
   <!-- Platinum-->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>Platinum Rates 
+      <i data-lucide="medal"></i>Platinum Rates 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
@@ -276,7 +298,7 @@ ul li { position: relative; }
   <!--Emerald-->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>Emerald Rates 
+      <i data-lucide="leaf"></i>Emerald Rates 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
@@ -287,7 +309,7 @@ ul li { position: relative; }
   <!-- Ruby-->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>Ruby Rates 
+      <i data-lucide="flame"></i>Ruby Rates 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
@@ -298,7 +320,7 @@ ul li { position: relative; }
   <!-- Sapphire-->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>Sapphire Rates 
+      <i data-lucide="droplet"></i>Sapphire Rates 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
@@ -309,7 +331,7 @@ ul li { position: relative; }
    <!-- Pearl-->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>Pearl Rates 
+      <i data-lucide="circle"></i>Pearl Rates 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
@@ -320,56 +342,56 @@ ul li { position: relative; }
   <!-- 24 Carat Gold-->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>24 Carat Gold 
+      <i data-lucide="shapes"></i>24 Carat Gold 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
-      <li><a href="add_24k_gold.php">Add Rate</a></li>
+    
       <li><a href="view_24k_gold.php">View Rates</a></li>
     </ul>
   </li>
    <!-- 22 Carat Gold-->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>22 Carat Gold 
+      <i data-lucide="shapes"></i>22 Carat Gold 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
-      <li><a href="add_22k_gold.php">Add Rate</a></li>
+
       <li><a href="view_22k_gold.php">View Rates</a></li>
     </ul>
   </li>
   <!-- 21 Carat Gold-->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>21 Carat Gold 
+      <i data-lucide="shapes"></i>21 Carat Gold 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
-      <li><a href="add_21k_gold.php">Add Rate</a></li>
+    
       <li><a href="view_21k_gold.php">View Rates</a></li>
     </ul>
   </li>
    <!-- 18 Carat Gold-->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>18 Carat Gold 
+      <i data-lucide="shapes"></i>18 Carat Gold 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
-      <li><a href="add_18k_gold.php">Add Rate</a></li>
+   
       <li><a href="view_18k_gold.php">View Rates</a></li>
     </ul>
   </li>
    <!-- 14 Carat Gold-->
   <li class="dropdown">
     <a href="javascript:void(0);" class="dropdown-toggle">
-      <i data-lucide="users"></i>14 Carat Gold 
+      <i data-lucide="shapes"></i>10 Carat Gold 
       <span class="arrow">▼</span>
     </a>
     <ul class="dropdown-menu">
-      <li><a href="add_14k_gold.php">Add Rate</a></li>
-      <li><a href="view_14k_gold.php">View Rates</a></li>
+   
+      <li><a href="view_10k_gold.php">View Rates</a></li>
     </ul>
   </li>
   

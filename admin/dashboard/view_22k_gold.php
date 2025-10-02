@@ -11,6 +11,11 @@ include '../includes/db.php';
 
 // ✅ Fetch all currencies
 $currencies = [];
+$currency_display = [
+    "QAR" => "QAR",
+    "USD" => "$",
+    "INR" => "₹"
+];
 $currency_sql = "SELECT id, Symbol FROM currencies ORDER BY id ASC";
 $currency_result = $conn->query($currency_sql);
 
@@ -121,9 +126,12 @@ $today_data = groupByWeightCurrency($today_result);
         <?php foreach ($today_data as $info): ?>
           <tr>
             <td><?= htmlspecialchars($info['weight']) ?></td>
-            <?php foreach ($currencies as $cid => $symbol): ?>
-              <td><?= isset($info['prices'][$cid]) ? number_format($info['prices'][$cid], 2) : '-' ?></td>
-            <?php endforeach; ?>
+             <?php foreach ($currencies as $cid => $code): ?>
+  <?php $symbol = $currency_display[$code] ?? $code; ?>
+  <td>
+    <?= isset($info['prices'][$cid]) ? $symbol . ' ' . number_format($info['prices'][$cid], 2) : '-' ?>
+  </td>
+<?php endforeach; ?>
             <td><a href="edit_22k_gold.php?id=<?= $info['id'] ?>" title="Edit">✏️</a></td>
           </tr>
         <?php endforeach; ?>

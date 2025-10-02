@@ -59,7 +59,7 @@ $result = $conn->query($sql);
 
 <div class="tables-container">
   <h2 style="text-align:center;">Weights</h2>
-  <a class="add-btn" href="add_currency.php">+ Add Weight</a>
+  <a class="add-btn" href="add_weight.php">+ Add Weight</a>
   
   <table>
       <tr>

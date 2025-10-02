@@ -143,12 +143,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       
       <div class="form-group">
         <label for="Symbol">Enter Symbol</label>
-        <select name="Symbol" id="Symbol" required>
-          <option value="QAR">QAR</option>
-          <option value="USD">USD</option>
-          <option value="INR">INR</option>
-          <option value="PKR">PKR</option>
-        </select>
+        <input 
+          type="text" 
+          name="Symbol" 
+          id="Symbol" 
+          placeholder="Enter Symbol..." 
+          pattern="[A-Za-z0-9]+" 
+          required>
       </div>
 
       <button type="submit">💰 Save Currency</button>
