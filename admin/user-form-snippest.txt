@@ -1,0 +1,128 @@
+function add_user_form_shortcode() {
+    ob_start();
+
+    // ✅ DB connection
+    $servername = "localhost:3307";
+    $username   = "root";
+    $password   = "";
+    $dbname     = "qatar";
+
+    $conn = new mysqli($servername, $username, $password, $dbname);
+    if ($conn->connect_error) {
+        return "<p style='color:red;text-align:center;'>❌ Connection failed: " . $conn->connect_error . "</p>";
+    }
+
+    // ✅ Insert user when form is submitted
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_user_form'])) {
+        $name     = trim($_POST['name'] ?? '');
+        $country  = trim($_POST['country'] ?? '');
+        $phone_no = trim($_POST['phone_no'] ?? '');
+        $email    = trim($_POST['email'] ?? '');
+
+        if (!empty($name) && !empty($country) && !empty($phone_no) && !empty($email)) {
+            $sql = "INSERT INTO users (name, country, email, phone_no, created_at, updated_at) 
+                    VALUES (?, ?, ?, ?, NOW(), NOW())";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssss", $name, $country, $email, $phone_no);
+
+            if ($stmt->execute()) {
+                echo "<p style='color:green; text-align:center;'>✅ User added successfully!</p>";
+            } else {
+                echo "<p style='color:red; text-align:center;'>❌ Error: " . $stmt->error . "</p>";
+            }
+        } else {
+            echo "<p style='color:red; text-align:center;'>❌ All fields are required.</p>";
+        }
+    }
+    ?>
+
+    <!-- ✅ User Form -->
+    <div class="form-wrapper">
+      <div class="form-container">
+        <div class="form-heading">
+      ⭐ Register to get latest updates and offers
+    </div>
+
+      <form method="POST" action="<?php echo esc_url( get_permalink() ); ?>">
+
+      <input type="hidden" name="add_user_form" value="1">
+
+          <!-- Name -->
+          <div class="form-group">
+            <label>Name <span style="color:red">*</span></label>
+            <input type="text" name="name" placeholder="Your Name..." required>
+          </div>
+
+          <!-- Country -->
+          <div class="form-group">
+            <label>Country <span style="color:red">*</span></label>
+            <select name="country" required>
+              <option value="" disabled selected>-- Select Country --</option>
+              <option value="Pakistan">Pakistan</option>
+              <option value="India">India</option>
+              <option value="Qatar">Qatar</option>
+              <option value="Oman">Oman</option>
+              <option value="United Arab Emirates">United Arab Emirates</option>
+              <option value="United States">United States</option>
+            </select>
+          </div>
+
+          <!-- Phone -->
+          <div class="form-group">
+            <label>Mobile Number <span style="color:red">*</span></label>
+            <input id="phone" type="tel" name="phone_no" placeholder="Enter Phone Number..." 
+                   pattern="[0-9]+" required>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label>Email Address <span style="color:red">*</span></label>
+            <input type="email" name="email" placeholder="Enter email..." required>
+          </div>
+
+          <button type="submit">Submit</button>
+        </form>
+      </div>
+    </div>
+
+    <style>
+      .form-wrapper { margin:40px auto; padding:20px; max-width:700px; display:flex; justify-content:center; }
+      .form-container { background:#fff; padding:35px 40px; border-radius:14px; box-shadow:0 6px 20px rgba(0,0,0,0.2); width:100%; }
+     .form-heading {
+    text-align:center;
+    font-size:22px;
+    font-weight:600;
+    padding:15px;
+    margin-bottom:25px;
+    border:1px solid #ddd;        /* Light gray border */
+    border-radius:10px;           /* Rounded corners */
+    background:#073A64;           /* Light background */
+    color:white;
+  }
+      .form-group { margin-bottom:20px; }
+      label { font-weight:600; display:block; margin-bottom:8px; color:#222; font-size:15px; }
+      input, select {
+        width:100%; padding:12px 14px; border-radius:8px; border:1px solid #ccc;
+        font-size:15px; transition:all 0.25s ease; background:#fafafa;
+      }
+	  select{
+		  height:45px;
+	  }		 
+      input:focus, select:focus {
+        border-color:#1e3a8a; background:#fff; box-shadow:0 0 8px rgba(30,58,138,0.15); outline:none;
+      }
+      button {
+        margin-top:25px; padding:14px;
+        background:linear-gradient(135deg,#1e3a8a,#152c65);
+        color:#fff; border:none; border-radius:8px; cursor:pointer; width:100%; font-size:17px; font-weight:600;
+        transition:all 0.3s ease;
+      }
+      button:hover {
+        background:linear-gradient(135deg,#152c65,#0d1a3a);
+        transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.15);
+      }
+    </style>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode("add_user_form", "add_user_form_shortcode");

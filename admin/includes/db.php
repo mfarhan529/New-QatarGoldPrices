@@ -1,5 +1,5 @@
 <?php
-$host = "127.0.0.1";
+$host = "localhost:3307";
 $user = "root";
 $pass = "";
 $dbname = "qatar"; // change if your DB name is different

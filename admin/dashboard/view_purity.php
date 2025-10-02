@@ -18,14 +18,14 @@ $result = $conn->query($sql);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Currencies Table</title>
+  <title>Purities Table</title>
 </head>
 <body>
 
 <?php include '../includes/sidebar.php'; ?>
 
 <?php if ($success_alert) { ?>
-    <div class="alert-success" id="successAlert">✅ Currency added successfully!</div>
+    <div class="alert-success" id="successAlert">✅ Purity added successfully!</div>
 <?php } ?>
 <?php if ($update_alert) { ?>
     <div class="alert-success" id="successAlert">✅ Data updated successfully!</div>

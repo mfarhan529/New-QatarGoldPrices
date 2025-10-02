@@ -12,215 +12,116 @@ include '../includes/db.php';
 
 
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pearl Table</title>
+
   <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"> -->
   </head>
   <body>
 
    
     <?php
-include '../includes/sidebar.php';
+
+
+$currency_display = [
+    "QAR" => "QAR",
+    "USD" => "$",
+    "INR" => "₹"
+];
+
 ?>
  
-<?php
-if (isset($_GET['success']) && $_GET['success'] == 1) {
-    echo '<div class="alert-success" id="successAlert">✅ Record added successfully!</div>';
-}
-// ✅ Show delete alert
-if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
-    echo '<div class="alert-danger" id="deleteAlert">🗑️ Record deleted successfully!</div>';
-}
-?>
 
 
 
 <?php
-// ✅ Today Data (last 24 hours) - Show created_at, Quantity, Currency, Price
-$today_sql = "SELECT id, Gemstone, Length, Currency, Price, created_at 
-              FROM pearl_prices 
-              WHERE created_at >= NOW() - INTERVAL 1 DAY 
-              ORDER BY created_at DESC";
-$today_result = $conn->query($today_sql);
+function getPearlByCurrency($conn, $currency_symbol) {
+    $sql = "
+        SELECT pe.id, pe.type, pe.Length, pe.Price_Range, pe.created_at
+        FROM pearl_prices pe
+        INNER JOIN (
+            SELECT type, Length, currency_id, MAX(created_at) AS latest_date
+            FROM pearl_prices
+            GROUP BY type, Length, currency_id
+        ) latest 
+        ON pe.type = latest.type  
+           AND pe.Length = latest.Length 
+           AND pe.currency_id = latest.currency_id 
+           AND pe.created_at = latest.latest_date
+        LEFT JOIN currencies c ON pe.currency_id = c.id
+        WHERE c.Symbol = ?
+        ORDER BY pe.created_at ASC
+    ";
 
-// ✅ History Data (older than 24 hours)
-$history_sql = "SELECT id, Gemstone, Length, Currency, Price, created_at 
-                FROM pearl_prices
-                WHERE created_at < NOW() - INTERVAL 1 DAY 
-                ORDER BY created_at DESC";
-$history_result = $conn->query($history_sql);
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $currency_symbol);
+    $stmt->execute();
+    return $stmt->get_result();
+}
+
+
+
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pearl Table</title>
+ <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
+    .table-wrapper { margin-left: 400px; padding: 40px 20px; width: 1000px; }
+    .table-container { background: #fff; padding: 25px; border-radius: 14px; margin-bottom: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    h2 { text-align: center; margin-bottom: 20px; color: #1e3a8a; font-size: 22px; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    thead { background: #1e3a8a; color: #fff; }
+    th, td { padding: 12px 14px; border: 1px solid #ddd; text-align: center; }
+    tbody tr:nth-child(even) { background: #f9f9f9; }
+    tbody tr:hover { background: #eef2ff; }
+  </style>
+</head>
+<body>
+  <?php  
+      include '../includes/sidebar.php';
+  ?>
+<div class="table-wrapper">
 
-<style>
-.alert-success {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: #28a745;
-    color: #fff;
-    padding: 15px 20px;
-    text-align: center;
-    font-weight: 600;
-    z-index: 9999;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    animation: slideDown 0.5s ease-in-out;
-}
+  <?php foreach (["QAR","INR","USD"] as $currency_symbol): ?>
+    <div class="table-container">
+      <h2> Pearl Prices (<?= $currency_symbol ?>)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Gemstone</th>
+            <th>Length</th>
+            <th>Price Range</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php 
+          $result = getPearlByCurrency($conn, $currency_symbol);
+          if ($result && $result->num_rows > 0): 
+              while ($row = $result->fetch_assoc()): ?>
+                <tr>
+                  <td><?= date("d-M-Y", strtotime($row['created_at'])) ?></td>
+                  <td><?= htmlspecialchars($row['type']) ?></td>
+                <td><?= htmlspecialchars($row['Length']) ?></td>
 
-.alert-danger {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: #dc3545;
-    color: #fff;
-    padding: 15px 20px;
-    text-align: center;
-    font-weight: 600;
-    z-index: 9999;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    animation: slideDown 0.5s ease-in-out;
-}
+                  <td><?= $currency_display[$currency_symbol] . ' ' . $row['Price_Range'] ?></td>
+                </tr>
+              <?php endwhile; ?>
+          <?php else: ?>
+            <tr>
+              <td colspan="4">❌ No records found for <?= $currency_symbol ?></td>
+            </tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+  <?php endforeach; ?>
 
-
-/* Slide down animation */
-@keyframes slideDown {
-    from { transform: translateY(-100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-/* Fade out animation */
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; transform: translateY(-20px); }
-}
-
-
-
-
-.tables-container {
-  display: block;
-  margin-left: 350px; /* space for sidebar */
-  margin-right: 20px;
-  padding: 20px;
-  width: 900px;
-}
-
-.tables-container table {
-  border-collapse: collapse;
-  width: 100%; /* full width inside container */
-  background: #fff;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-
-.tables-container th {
-  background: #1e3a8a;
-  color: #fff;
-  padding: 10px;
-  text-align: center;
-}
-
-.tables-container td {
-  padding: 10px;
-  text-align: center;
-  border: 1px solid #ddd;
-}
-
-.delete-btn {
-  color: red;
-  cursor: pointer;
-  font-size: 18px;
-  text-decoration: none;
-}
-.delete-btn:hover {
-  color: darkred;
-}
-h2 {
-  text-align: center;
-}
-
-
-</style>
-
-
-
-
-<div class="tables-container">
-  <!-- ✅ Today’s Pearl Prices -->
-  <div class="today-table">
-    <h2>Today’s Pearl Prices</h2>
-    <table class="table">
-      <tr>
-        <th scope="col" >Gemstone</th>
-        <th scope="col" >Length</th>
-        <th scope="col">Currency</th>
-        <th scope="col">Price</th>
-        <th scope="col">Action</th>
-      </tr>
-      <?php if ($today_result->num_rows > 0) { 
-        while($row = $today_result->fetch_assoc()) { ?>
-      <tr>
-        <td><?= $row['Gemstone'] ?></td>
-        <td><?= $row['Length'] ?></td>
-        <td><?= $row['Currency'] ?></td>
-        <td><?= $row['Price'] ?></td>
-     <td>
-  <a href="delete.php?id=<?= $row['id'] ?>&type=pearl"
-     class="delete-btn"
-     onclick="return confirm('Are you sure you want to delete this entry?')">🗑</a>
-</td>
-
-      </tr>
-      <?php } } else { ?>
-      <tr><td colspan="4">No data available for Today</td></tr>
-      <?php } ?>
-    </table>
-  </div>
-
-  <!-- ✅ History Pearl Prices -->
-  <div class="history-table">
-    <h2>History Pearl Prices</h2>
-    <table>
-      <tr>
-        <th>Date</th>
-        <th>Gemstone</th>
-        <th>Length</th>
-        <th>Currency</th>
-        <th>Price</th>
-        <th>Action</th>
-      </tr><?php if ($history_result->num_rows > 0) { 
-    while($row = $history_result->fetch_assoc()) { 
-        // Format date into 12-Sep-2025
-        $formatted_date = date("d-M-Y", strtotime($row['created_at']));
-?>
-      <tr>
-        <td><?= $formatted_date ?></td>
-        <td><?= $row['Gemstone'] ?></td>
-        <td><?= $row['Length'] ?></td>
-        <td><?= $row['Currency'] ?></td>
-        <td><?= $row['Price'] ?></td>
-        <td>
-  <a href="delete.php?id=<?= $row['id'] ?>&type=pearl" 
-     class="delete-btn" 
-     onclick="return confirm('Are you sure you want to delete this entry?')">🗑</a>
-</td>
-
-      </tr>
-      <?php } } else { ?>
-      <tr><td colspan="5">No historical data available</td></tr>
-      <?php } ?>
-    </table>
-  </div>
 </div>
 
+</body>
 
 
      <script>

@@ -3,181 +3,190 @@ session_start();
 
 // ✅ Check if user is logged in
 if (!isset($_SESSION['admin'])) {
-    header("Location: ../"); 
+    header("Location: ../");
     exit();
 }
 
 include '../includes/db.php';
+
+// ✅ Fetch all currencies
+$currencies = [];
+$currency_display = [
+    "QAR" => "QAR",
+    "USD" => "$",
+    "INR" => "₹"
+];
+$currency_sql = "SELECT id, Symbol FROM currencies ORDER BY id ASC";
+$currency_result = $conn->query($currency_sql);
+
+if ($currency_result && $currency_result->num_rows > 0) {
+    while ($c = $currency_result->fetch_assoc()) {
+        $currencies[$c['id']] = $c['Symbol']; // map id => Symbol
+    }
+}
+
+// ✅ Today’s 24K Gold Prices (last 24 hours)
+$today_sql = "SELECT g.id AS gold_id, g.currency_id, g.purity_id, g.weight_id, g.Prices, g.created_at, 
+                     c.Symbol, p.name AS purity_name, w.unit AS weight_unit
+              FROM gold_prices g
+              LEFT JOIN currencies c ON g.currency_id = c.id
+              LEFT JOIN purities p ON g.purity_id = p.id
+              LEFT JOIN weight w ON g.weight_id = w.id
+              WHERE g.created_at >= NOW() - INTERVAL 24 HOUR
+              AND g.purity_id = 3   -- ✅ Only 21K Gold
+              ORDER BY w.id ASC, g.currency_id ASC";
+$today_result = $conn->query($today_sql);
+
+
+        $history_sql = "SELECT g.id AS gold_id, g.currency_id, g.purity_id, g.weight_id, g.Prices, g.created_at, 
+                               c.Symbol, p.name AS purity_name, w.unit AS weight_unit
+                        FROM gold_prices g
+                        LEFT JOIN currencies c ON g.currency_id = c.id
+                        LEFT JOIN purities p ON g.purity_id = p.id
+                        LEFT JOIN weight w ON g.weight_id = w.id
+                        WHERE g.purity_id = 3  /* Only 21K Gold */
+                          AND c.Symbol = 'QAR'
+                        ORDER BY g.created_at DESC, w.id ASC";
+
+        $history_result = $conn->query($history_sql);
+
+        // ✅ Group History by Date
+        $history_data = [];
+        if ($history_result && $history_result->num_rows > 0) {
+            while ($row = $history_result->fetch_assoc()) {
+                $date   = date("d-M-Y", strtotime($row['created_at']));
+                $weight = $row['weight_unit'];
+
+                if (!isset($history_data[$date])) {
+                    $history_data[$date] = [
+                        'date'   => $date,
+                        'prices' => []
+                    ];
+                }
+                $history_data[$date]['prices'][$weight] = $row['Prices'];
+            }
+        }
+// today function  
+function groupByWeightCurrency($result) {
+    $data = [];
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $weight = $row['weight_unit'];
+            if (!isset($data[$weight])) {
+                $data[$weight] = [
+                    'id'     => $row['gold_id'],
+                    'weight' => $weight,
+                    'prices' => []
+                ];
+            }
+            $data[$weight]['prices'][$row['currency_id']] = $row['Prices'];
+        }
+    }
+    return $data;
+}
+
+$today_data = groupByWeightCurrency($today_result);
+
+// history function   
+
+
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>21K Gold Table</title>
+  <title>View 21k Gold Rates</title>
 </head>
 <body>
 
 <?php include '../includes/sidebar.php'; ?>
+<div class="table-wrapper">
 
-<?php
-// ✅ Show success alert
-if (isset($_GET['success']) && $_GET['success'] == 1) {
-    echo '<div class="alert-success" id="successAlert">✅ Record added successfully!</div>';
-}
-// ✅ Show delete alert
-if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
-    echo '<div class="alert-danger" id="deleteAlert">🗑️ Record deleted successfully!</div>';
-}
-?>
-
-<style>
-.alert-success, .alert-danger {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%;
-    padding: 15px 20px;
-    text-align: center;
-    font-weight: 600;
-    z-index: 9999;
-    animation: slideDown 0.5s ease-in-out;
-}
-.alert-success { background-color: #28a745; color: #fff; }
-.alert-danger { background-color: #dc3545; color: #fff; }
-
-@keyframes slideDown { from {transform: translateY(-100%);opacity:0;} to {transform: translateY(0);opacity:1;} }
-@keyframes fadeOut { from {opacity:1;} to {opacity:0;transform:translateY(-20px);} }
-
-.tables-container {
-  display: block;
-  margin-left: 350px; 
-  margin-right: 20px;
-  padding: 20px;
-  width: 900px;
-}
-.tables-container table {
-  border-collapse: collapse;
-  width: 100%;
-  background: #fff;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-.tables-container th {
-  background: #1e3a8a;
-  color: #fff;
-  padding: 10px;
-  text-align: center;
-}
-.tables-container td {
-  padding: 10px;
-  text-align: center;
-  border: 1px solid #ddd;
-}
-.delete-btn {
-  color: red;
-  cursor: pointer;
-  font-size: 18px;
-  text-decoration: none;
-}
-.delete-btn:hover { color: darkred; }
-h2 { text-align: center; }
-</style>
-
-<div class="tables-container">
-  <!-- ✅ Today’s 21K Gold Prices -->
-  <div class="today-table">
-    <h2>Today’s 21K Gold Prices</h2>
-    <table class="table">
+  <!-- ✅ Success message -->
+  <?php if (isset($_GET['success'])): ?>
+    <p class="success-msg">✅ 21k Gold rate added successfully!</p>
+  <?php endif; ?>
+<div class="table-container">
+  <h2>📊 Today’s 21K Gold Prices</h2>
+  <table>
+    <thead>
       <tr>
         <th>Weight</th>
-        <th>QAR</th>
-        <th>USD</th>
-        <th>INR</th>
+        <?php foreach ($currencies as $symbol): ?>
+          <th><?= htmlspecialchars($symbol) ?></th>
+        <?php endforeach; ?>
         <th>Action</th>
       </tr>
-      <?php
-      // ✅ Pivot for today’s entries
-      $pivot_sql = "
-        SELECT Weight,
-          MAX(CASE WHEN Currencies = 'QAR' THEN Prices END) AS QAR,
-          MAX(CASE WHEN Currencies = 'USD' THEN Prices END) AS USD,
-          MAX(CASE WHEN Currencies = 'INR' THEN Prices END) AS INR,
-          MAX(created_at) AS created_at
-        FROM `21k_gold`
-        WHERE created_at >= NOW() - INTERVAL 1 DAY
-        GROUP BY Weight
-        ORDER BY created_at DESC
-      ";
-      $pivot_result = $conn->query($pivot_sql);
-
-      if ($pivot_result->num_rows > 0) {
-        while($row = $pivot_result->fetch_assoc()) { ?>
+    </thead>
+    <tbody>
+      <?php if (!empty($today_data)): ?>
+        <?php foreach ($today_data as $info): ?>
           <tr>
-            <td><?= $row['Weight'] ?></td>
-            <td><?= $row['QAR'] ? 'QAR ' . number_format($row['QAR'], 2) : '-' ?></td>
-            <td><?= $row['USD'] ? '$ ' . number_format($row['USD'], 2) : '-' ?></td>
-            <td><?= $row['INR'] ? '₹ ' . number_format($row['INR'], 2) : '-' ?></td>
-            <td>
-              <a href="delete.php?weight=<?= urlencode($row['Weight']) ?>&type=21k_gold"
-                 class="delete-btn"
-                 onclick="return confirm('Are you sure you want to delete this entry?')">🗑</a>
-            </td>
+            <td><?= htmlspecialchars($info['weight']) ?></td>
+             <?php foreach ($currencies as $cid => $code): ?>
+  <?php $symbol = $currency_display[$code] ?? $code; ?>
+  <td>
+    <?= isset($info['prices'][$cid]) ? $symbol . ' ' . number_format($info['prices'][$cid], 2) : '-' ?>
+  </td>
+<?php endforeach; ?>
+            <td><a href="edit_21k_gold.php?id=<?= $info['id'] ?>" title="Edit">✏️</a></td>
           </tr>
-      <?php } } else { ?>
-        <tr><td colspan="5">No data available for Today</td></tr>
-      <?php } ?>
-    </table>
-  </div>
-
-  <!-- ✅ History 21K Gold Prices -->
-  <div class="history-table">
-    <h2>History 21K Gold Prices</h2>
-    <table>
-      <tr>
-        <th>Date</th>
-        <th>1 Gram</th>
-        <th>1 Tola</th>
-        <th>1 Ounce</th>
-        <th>Action</th>
-      </tr>
-      <?php  
-      $history_pivot_sql = "
-        SELECT DATE(created_at) AS PriceDate,
-          MAX(CASE WHEN Weight = '1 Gram' THEN Prices END)   AS `1_Gram`,
-          MAX(CASE WHEN Weight = '1 Tola' THEN Prices END)   AS `1_Tola`,
-          MAX(CASE WHEN Weight = '1 Ounce' THEN Prices END)  AS `1_Ounce`
-        FROM `21k_gold`
-        WHERE created_at < NOW() - INTERVAL 1 DAY
-          AND Currencies = 'QAR'
-        GROUP BY DATE(created_at)
-        ORDER BY PriceDate DESC
-      ";
-      $history_pivot_result = $conn->query($history_pivot_sql);
-
-      if ($history_pivot_result && $history_pivot_result->num_rows > 0) { 
-        while($row = $history_pivot_result->fetch_assoc()) { 
-            $formatted_date = date("d-M-Y", strtotime($row['PriceDate']));
-        ?>
-          <tr>
-            <td><?= $formatted_date ?></td>
-            <td><?= $row['1_Gram']   ? 'QAR ' . number_format($row['1_Gram'], 2) : '-' ?></td>
-            <td><?= $row['1_Tola']   ? 'QAR ' . number_format($row['1_Tola'], 2) : '-' ?></td>
-            <td><?= $row['1_Ounce']  ? 'QAR ' . number_format($row['1_Ounce'], 2) : '-' ?></td>
-            <td>
-              <a href="delete.php?date=<?= urlencode($row['PriceDate']) ?>&type=21k_gold_history"
-                 class="delete-btn"
-                 onclick="return confirm('Are you sure you want to delete all records for <?= $formatted_date ?>?')">🗑</a>
-            </td>
-          </tr>
-      <?php } } else { ?>
-        <tr><td colspan="5">No historical data available</td></tr>
-      <?php } ?>
-    </table>
-  </div>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <tr>
+          <td colspan="<?= count($currencies) + 2 ?>" style="text-align:center;">❌ No records found for Today</td>
+        </tr>
+      <?php endif; ?>
+    </tbody>
+  </table>
 </div>
+     <div class="table-container">
+        
+  <h2>📜 History 21K Gold Prices</h2>
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>1 Gram</th>
+                <th>1 Tola</th>
+                <th>1 Ounce</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if (!empty($history_data)): ?>
+                <?php foreach ($history_data as $info): ?>
+                  <tr>
+                    <td><?php echo htmlspecialchars($info['date']); ?></td>
+                    <td><?php echo isset($info['prices']['1 Gram']) ? 'QAR '.number_format($info['prices']['1 Gram'], 2) : '-'; ?></td>
+                    <td><?php echo isset($info['prices']['1 Tola']) ? 'QAR '.number_format($info['prices']['1 Tola'], 2) : '-'; ?></td>
+                    <td><?php echo isset($info['prices']['1 Ounce']) ? 'QAR '.number_format($info['prices']['1 Ounce'], 2) : '-'; ?></td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <tr><td colspan="4" style="text-align:center;">❌ No historical data found</td></tr>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+
+
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
+  .table-wrapper { margin-left: 400px; padding: 40px 20px; width: 1000px; }
+  .table-container { background: #fff; padding: 25px; border-radius: 14px; margin-bottom: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+  h2 { text-align: center; margin-bottom: 20px; color: #1e3a8a; font-size: 24px; font-weight: 700; }
+  .success-msg { text-align: center; background: #d1fae5; color: #065f46; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: #1e3a8a; color: #fff; }
+  th, td { padding: 12px 14px; border: 1px solid #ddd; text-align: center; }
+  tbody tr:nth-child(even) { background: #f9f9f9; }
+  tbody tr:hover { background: #eef2ff; }
+  a { text-decoration: none; font-size: 18px; color: #1e3a8a; }
+  a:hover { color: #0d1a3a; }
+</style>
 
 <script>
 document.querySelectorAll('.dropdown-toggle').forEach(item => {
@@ -185,16 +194,6 @@ document.querySelectorAll('.dropdown-toggle').forEach(item => {
     e.preventDefault();
     this.parentElement.classList.toggle('open');
   });
-});
-
-document.addEventListener("DOMContentLoaded", function() {
-    const alerts = document.querySelectorAll("#successAlert, #deleteAlert");
-    alerts.forEach(alertBox => {
-        setTimeout(() => {
-            alertBox.style.animation = "fadeOut 0.8s forwards";
-            setTimeout(() => alertBox.remove(), 800);
-        }, 3000);
-    });
 });
 </script>
 

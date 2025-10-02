@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <input type="number" step="0.01" name="Price" placeholder="Enter price..." required>
       </div>
 
-      <button type="submit">💰 Save Gold Rate</button>
+      <button type="submit">💰 Save Silver Rate</button>
     </form>
   </div>
 </div>
